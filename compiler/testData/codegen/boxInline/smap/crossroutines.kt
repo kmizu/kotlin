@@ -1,4 +1,4 @@
-// This test depends on line numbers
+// IGNORE_BACKEND_MULTI_MODULE: JVM_IR
 // WITH_RUNTIME
 // FILE: 1.kt
 

@@ -27,8 +27,8 @@ inline fun test(s: () -> Unit) {
 // this behavior is equivalent to javac and seems to be correct.
 
 // JVM_IR_TEMPLATES
-// 3 INNERCLASS Kt10259Kt\$box\$1\$1\s
+// 2 INNERCLASS Kt10259Kt\$box\$1\$1\s
 // 2 INNERCLASS Kt10259Kt\$box\$1\$1\$1
-// 5 INNERCLASS
+// 4 INNERCLASS
 // 1 class Kt10259Kt\$box\$1\$1\ extends
 // 1 class Kt10259Kt\$box\$1\$1\$1 extends

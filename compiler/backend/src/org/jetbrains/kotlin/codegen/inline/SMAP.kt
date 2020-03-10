@@ -171,6 +171,14 @@ object IdenticalSourceMapper : SourceMapper {
         get() = null
 
     override fun mapLineNumber(lineNumber: Int) = lineNumber
+
+    override fun mapLineNumber(source: Int, sourceName: String, sourcePath: String): Int {
+        throw UnsupportedOperationException(
+            "IdenticalSourceMapper should not encounter a line number out of range of the current file."
+                    + System.lineSeparator()
+                    + "This indicates that SMAP generation is missed somewhere."
+        )
+    }
 }
 
 class CallSiteMarker(val lineNumber: Int)
