@@ -5,24 +5,35 @@
 
 package org.jetbrains.kotlin.codegen.inline
 
-import org.jetbrains.kotlin.codegen.InlineCycleReporter
+import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.diagnostics.Errors
 import java.util.*
 
-class GlobalInlineContext(diagnostics: DiagnosticSink) {
-
-    private val inlineCycleReporter: InlineCycleReporter = InlineCycleReporter(diagnostics)
+class GlobalInlineContext(private val diagnostics: DiagnosticSink) {
+    private val processing = linkedMapOf<CallableDescriptor, PsiElement?>()
 
     private val typesUsedInInlineFunctions = LinkedList<MutableSet<String>>()
 
-    fun enterIntoInlining(call: InlineCall?) =
-        inlineCycleReporter.enterIntoInlining(call).also {
-            if (it) typesUsedInInlineFunctions.push(hashSetOf())
+    fun enterIntoInlining(context: CallableDescriptor, callee: CallableDescriptor?, element: PsiElement?): Boolean {
+        assert(context.original !in processing) { "entered inlining cycle on $context" }
+        processing[context.original] = element
+        if (callee?.original in processing) {
+            var currentElement = element
+            for ((callContainer, callElement) in processing.entries.dropWhile { it.key != callee?.original }) {
+                currentElement?.let { diagnostics.report(Errors.INLINE_CALL_CYCLE.on(it, callContainer)) }
+                currentElement = callElement // next container is the target of this call
+            }
+            processing.remove(context.original)
+            return false
         }
+        typesUsedInInlineFunctions.push(hashSetOf())
+        return true
+    }
 
-    fun exitFromInliningOf(call: InlineCall?) {
-        inlineCycleReporter.exitFromInliningOf(call)
+    fun exitFromInlining(context: CallableDescriptor) {
+        processing.remove(context.original)
         val pop = typesUsedInInlineFunctions.pop()
         typesUsedInInlineFunctions.peek()?.addAll(pop)
     }

@@ -63,8 +63,8 @@ class PsiInlineCodegen(
         callDefault: Boolean,
         codegen: ExpressionCodegen
     ) {
-        val inlineCall = InlineCallImpl.of(resolvedCall)
-        if (!state.globalInlineContext.enterIntoInlining(inlineCall)) {
+        val context = codegen.context.functionDescriptor
+        if (!state.globalInlineContext.enterIntoInlining(context, resolvedCall?.resultingDescriptor, resolvedCall?.call?.callElement)) {
             generateStub(resolvedCall, codegen)
             return
         }
@@ -72,7 +72,7 @@ class PsiInlineCodegen(
             val registerLineNumber = registerLineNumberAfterwards(resolvedCall)
             performInline(resolvedCall?.typeArguments?.keys?.toList(), callDefault, callDefault, codegen.typeSystem, registerLineNumber)
         } finally {
-            state.globalInlineContext.exitFromInliningOf(inlineCall)
+            state.globalInlineContext.exitFromInlining(context)
         }
     }
 
